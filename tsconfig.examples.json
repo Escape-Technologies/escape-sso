@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "escape-sso/vercel": ["./src/adapters/vercel.ts"]
+    }
+  },
+  "include": ["examples/vercel-static/middleware.ts"]
+}
