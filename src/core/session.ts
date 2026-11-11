@@ -3,7 +3,7 @@ import { DEFAULT_SESSION_TTL_SECONDS, validateConfig, type SSOConfig } from './c
 
 export interface SessionUser {
   email: string;
-  name: string;
+  name?: string;
 }
 
 export interface PendingLogin {
@@ -25,11 +25,11 @@ export function unixNow(): number {
 }
 
 export async function signSession(user: SessionUser, config: SSOConfig, now: number = unixNow()): Promise<string> {
-  if (typeof user.email !== 'string' || user.email === '' || typeof user.name !== 'string') {
-    throw new Error('session user must have an email and a name');
+  if (typeof user.email !== 'string' || user.email === '' || (user.name !== undefined && typeof user.name !== 'string')) {
+    throw new Error('session user must have a valid email and optional name');
   }
   const ttl = sessionTtlSeconds(config);
-  return new SignJWT({ name: user.name })
+  return new SignJWT(user.name === undefined ? {} : { name: user.name })
     .setProtectedHeader({ alg: ALGORITHM })
     .setSubject(user.email)
     .setIssuedAt(now)
@@ -42,10 +42,10 @@ export async function signSession(user: SessionUser, config: SSOConfig, now: num
 // Returns null for any failure, including a malformed config: a bad token never throws.
 export async function readSession(token: string, config: SSOConfig, now: number = unixNow()): Promise<SessionUser | null> {
   const payload = await verifyToken(token, config, SESSION_AUDIENCE, now);
-  if (!payload || typeof payload.sub !== 'string' || typeof payload.name !== 'string') {
+  if (!payload || typeof payload.sub !== 'string' || (payload.name !== undefined && typeof payload.name !== 'string')) {
     return null;
   }
-  return { email: payload.sub, name: payload.name };
+  return typeof payload.name === 'string' ? { email: payload.sub, name: payload.name } : { email: payload.sub };
 }
 
 export async function signPending(pending: PendingLogin, config: SSOConfig, now: number = unixNow()): Promise<string> {

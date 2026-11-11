@@ -120,7 +120,7 @@ describe('session tokens', () => {
     expect(await readSession(wrongAudience, config, NOW)).toBeNull();
   });
 
-  it('rejects a session without a name claim', async () => {
+  it('reads a session without an optional name claim', async () => {
     const key = new TextEncoder().encode(config.sessionSecret);
     const token = await new SignJWT({})
       .setProtectedHeader({ alg: 'HS256' })
@@ -130,7 +130,7 @@ describe('session tokens', () => {
       .setIssuer('escape-sso')
       .setAudience('escape-sso-session')
       .sign(key);
-    expect(await readSession(token, config, NOW)).toBeNull();
+    expect(await readSession(token, config, NOW)).toEqual({ email: USER.email });
   });
 
   it('returns null for garbage and for an invalid config, without throwing', async () => {
