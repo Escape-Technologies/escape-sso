@@ -34,4 +34,10 @@ describe('vercel-static example', () => {
   it('declares a static framework', () => {
     expect(JSON.parse(readFileSync(exampleDirectory + 'vercel.json', 'utf8'))).toEqual({ framework: null });
   });
+
+  it('includes middleware.ts verbatim in the README', () => {
+    const middleware = readFileSync(exampleDirectory + 'middleware.ts', 'utf8');
+    const readme = readFileSync(fileURLToPath(new URL('../README.md', import.meta.url)), 'utf8');
+    expect(readme).toContain(middleware);
+  });
 });
